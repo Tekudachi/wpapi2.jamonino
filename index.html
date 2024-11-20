@@ -3,119 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publicar en WordPress con API Externa</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Publicar el Tiempo en WordPress</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
-<body class="bg-light">
-    <div class="container my-5">
-        <h1 class="text-center">Crear Publicación en WordPress</h1>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Publicar el Tiempo en WordPress</h1>
         
-        <!-- Formulario de publicación manual -->
+        <!-- Formulario para seleccionar provincia -->
         <div class="row justify-content-center mt-5">
             <div class="col-md-6">
-                <form id="postForm">
+                <form id="weatherForm">
                     <div class="form-group">
-                        <label for="title">Título</label>
-                        <input type="text" id="title" class="form-control" placeholder="Introduce el título" required>
+                        <label for="province">Selecciona una provincia</label>
+                        <select id="province" class="form-control">
+                            <option value="" disabled selected>Elige una provincia</option>
+                            <!-- Opciones generadas dinámicamente -->
+                            <option value="01">Álava</option>
+                            <option value="02">Albacete</option>
+                            <option value="03">Alicante</option>
+                            <option value="04">Almería</option>
+                            <option value="05">Ávila</option>
+                            <option value="06">Badajoz</option>
+                            <option value="07">Baleares</option>
+                            <option value="08">Barcelona</option>
+                            <option value="09">Burgos</option>
+                            <option value="10">Cáceres</option>
+                            <option value="11">Cádiz</option>
+                            <option value="12">Castellón</option>
+                            <option value="13">Ciudad Real</option>
+                            <option value="14">Córdoba</option>
+                            <option value="15">A Coruña</option>
+                            <option value="16">Cuenca</option>
+                            <option value="17">Girona</option>
+                            <option value="18">Granada</option>
+                            <option value="19">Guadalajara</option>
+                            <option value="20">Guipúzcoa</option>
+                            <option value="21">Huelva</option>
+                            <option value="22">Huesca</option>
+                            <option value="23">Jaén</option>
+                            <option value="24">León</option>
+                            <option value="25">Lleida</option>
+                            <option value="26">La Rioja</option>
+                            <option value="27">Lugo</option>
+                            <option value="28">Madrid</option>
+                            <option value="29">Málaga</option>
+                            <option value="30">Murcia</option>
+                            <option value="31">Navarra</option>
+                            <option value="32">Ourense</option>
+                            <option value="33">Asturias</option>
+                            <option value="34">Palencia</option>
+                            <option value="35">Las Palmas</option>
+                            <option value="36">Pontevedra</option>
+                            <option value="37">Salamanca</option>
+                            <option value="38">Santa Cruz de Tenerife</option>
+                            <option value="39">Cantabria</option>
+                            <option value="40">Segovia</option>
+                            <option value="41">Sevilla</option>
+                            <option value="42">Soria</option>
+                            <option value="43">Tarragona</option>
+                            <option value="44">Teruel</option>
+                            <option value="45">Toledo</option>
+                            <option value="46">Valencia</option>
+                            <option value="47">Valladolid</option>
+                            <option value="48">Vizcaya</option>
+                            <option value="49">Zamora</option>
+                            <option value="50">Zaragoza</option>
+                            <option value="51">Ceuta</option>
+                            <option value="52">Melilla</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="content">Contenido</label>
-                        <textarea id="content" class="form-control" rows="5" placeholder="Introduce el contenido" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">Publicar</button>
-                    <button type="button" id="clearFields" class="btn btn-secondary btn-block mt-2">Limpiar Campos</button>
+                    <button type="submit" class="btn btn-primary btn-block">Consultar y Publicar</button>
                 </form>
-            </div>
-        </div>
-
-        <!-- Botón para consultar datos de la API externa -->
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6">
-                <button id="getWeatherData" class="btn btn-success btn-block">Consultar Datos del Clima</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Limpiar los campos al cargar la página
-        window.addEventListener('load', function () {
-            document.getElementById('title').value = '';
-            document.getElementById('content').value = '';
-        });
-
-        // Evento para limpiar los campos
-        document.getElementById('clearFields').addEventListener('click', function () {
-            document.getElementById('title').value = '';
-            document.getElementById('content').value = '';
-        });
-
-        // Enviar formulario para publicar título y contenido en WordPress
-        document.getElementById('postForm').addEventListener('submit', function (e) {
+        // Manejar el formulario para consultar y publicar en WordPress
+        document.getElementById('weatherForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const title = document.getElementById('title').value;
-            const content = document.getElementById('content').value;
+            const provinceCode = document.getElementById('province').value;
+            const provinceName = document.getElementById('province').options[document.getElementById('province').selectedIndex].text;
 
-            fetch('http://www.wpapi2.lan/publish.php', {
+            if (!provinceCode) {
+                alert('Por favor, selecciona una provincia.');
+                return;
+            }
+
+            // URL de tu API para procesar la información
+            const apiUrl = 'http://www.wpapi2.lan/process-weather.php';
+
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content })
+                body: JSON.stringify({ code: provinceCode, name: provinceName }) // Enviar código y nombre de la provincia
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Publicación creada con éxito.');
-                    // Limpiar los campos después de la publicación exitosa
-                    document.getElementById('title').value = '';
-                    document.getElementById('content').value = '';
+                    alert('El tiempo de ' + provinceName + ' se ha publicado correctamente en WordPress.');
                 } else {
-                    alert('Error al crear la publicación: ' + data.error);
+                    alert('Hubo un problema: ' + (data.message || 'Error desconocido.'));
                 }
             })
-            .catch(error => console.error('Error en la solicitud:', error));
-        });
-
-        // Función para consultar los datos del clima desde la API externa
-        document.getElementById('getWeatherData').addEventListener('click', function () {
-            // Realizar la consulta a la API externa (AEMET en este caso)
-            fetch('https://www.el-tiempo.net/api/json/v2/provincias/30')
-                .then(response => response.json())
-                .then(data => {
-                    // Depuración: Ver los datos completos de la API
-                    console.log('Datos obtenidos de la API:', data);
-
-                    // Acceso a los datos de la respuesta
-                    const ciudad = data.ciudades[0]; // Tomamos el primer resultado de las ciudades
-                    const title = `Clima en la Provincia de Murcia`;  // Título fijo para la publicación
-                    const content = `
-                        <h3>Información del Clima:</h3>
-                        <p><strong>Provincia:</strong> ${data.provincia.NOMBRE_PROVINCIA || 'No disponible'}</p>
-                        <p><strong>Ciudad:</strong> ${ciudad.name || 'No disponible'}</p>
-                        <p><strong>Estado del Clima:</strong> ${ciudad.stateSky.description || 'No disponible'}</p>
-                        <p><strong>Temperatura Máxima:</strong> ${ciudad.temperatures.max || 'No disponible'}°C</p>
-                        <p><strong>Temperatura Mínima:</strong> ${ciudad.temperatures.min || 'No disponible'}°C</p>
-                    `;
-
-                    // Publicar la información del clima en WordPress
-                    fetch('http://www.wpapi2.lan/publish.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, content })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Publicación del clima creada con éxito.');
-                        } else {
-                            alert('Error al crear la publicación del clima: ' + data.error);
-                        }
-                    })
-                    .catch(error => console.error('Error al publicar datos del clima:', error));
-                })
-                .catch(error => {
-                    console.error('Error al consultar los datos del clima:', error);
-                    alert('Error al obtener los datos del clima.');
-                });
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </body>
