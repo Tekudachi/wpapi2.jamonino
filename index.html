@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicar en WordPress con API Externa</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <h1 class="text-center">Crear Publicación en WordPress</h1>
+        
+        <!-- Formulario de publicación manual -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <form id="postForm">
+                    <div class="form-group">
+                        <label for="title">Título</label>
+                        <input type="text" id="title" class="form-control" placeholder="Introduce el título" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="content">Contenido</label>
+                        <textarea id="content" class="form-control" rows="5" placeholder="Introduce el contenido" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Publicar</button>
+                    <button type="button" id="clearFields" class="btn btn-secondary btn-block mt-2">Limpiar Campos</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Botón para consultar datos de la API externa -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-6">
+                <button id="getWeatherData" class="btn btn-success btn-block">Consultar Datos del Clima</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Limpiar los campos al cargar la página
+        window.addEventListener('load', function () {
+            document.getElementById('title').value = '';
+            document.getElementById('content').value = '';
+        });
+
+        // Evento para limpiar los campos
+        document.getElementById('clearFields').addEventListener('click', function () {
+            document.getElementById('title').value = '';
+            document.getElementById('content').value = '';
+        });
+
+        // Enviar formulario para publicar título y contenido en WordPress
+        document.getElementById('postForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+
+            fetch('http://www.wpapi2.lan/publish.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Publicación creada con éxito.');
+                    // Limpiar los campos después de la publicación exitosa
+                    document.getElementById('title').value = '';
+                    document.getElementById('content').value = '';
+                } else {
+                    alert('Error al crear la publicación: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error en la solicitud:', error));
+        });
+
+        // Función para consultar los datos del clima desde la API externa
+        document.getElementById('getWeatherData').addEventListener('click', function () {
+            // Realizar la consulta a la API externa (AEMET en este caso)
+            fetch('https://www.el-tiempo.net/api/json/v2/provincias/30')
+                .then(response => response.json())
+                .then(data => {
+                    // Depuración: Ver los datos completos de la API
+                    console.log('Datos obtenidos de la API:', data);
+
+                    // Acceso a los datos de la respuesta
+                    const ciudad = data.ciudades[0]; // Tomamos el primer resultado de las ciudades
+                    const title = `Clima en la Provincia de Murcia`;  // Título fijo para la publicación
+                    const content = `
+                        <h3>Información del Clima:</h3>
+                        <p><strong>Provincia:</strong> ${data.provincia.NOMBRE_PROVINCIA || 'No disponible'}</p>
+                        <p><strong>Ciudad:</strong> ${ciudad.name || 'No disponible'}</p>
+                        <p><strong>Estado del Clima:</strong> ${ciudad.stateSky.description || 'No disponible'}</p>
+                        <p><strong>Temperatura Máxima:</strong> ${ciudad.temperatures.max || 'No disponible'}°C</p>
+                        <p><strong>Temperatura Mínima:</strong> ${ciudad.temperatures.min || 'No disponible'}°C</p>
+                    `;
+
+                    // Publicar la información del clima en WordPress
+                    fetch('http://www.wpapi2.lan/publish.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, content })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Publicación del clima creada con éxito.');
+                        } else {
+                            alert('Error al crear la publicación del clima: ' + data.error);
+                        }
+                    })
+                    .catch(error => console.error('Error al publicar datos del clima:', error));
+                })
+                .catch(error => {
+                    console.error('Error al consultar los datos del clima:', error);
+                    alert('Error al obtener los datos del clima.');
+                });
+        });
+    </script>
+</body>
+</html>
+
